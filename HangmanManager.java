@@ -4,6 +4,12 @@
 
 import java.util.*;
 
+// a class for the game Evil Hangman, which seems to the user to be working as
+// the normal Hangman: computer chooses a word, and the user tries to guess it 
+// letter by letter. However, in this case, the computer delays picking a word 
+// until it is forced to. The computer is always considering a set of 
+// words that could be the answer based on the same letter pattern guessed by 
+// the user.
 public class HangmanManager {
    private int guessesLeft;
    private int wordLength;
@@ -12,6 +18,15 @@ public class HangmanManager {
    private Set<Character> guesses;
    private String pattern;
    
+   // pre: the given length of the word should be greater than 0, if not
+   //      throws an IllegalArgumentException;
+   //      the maximum number of guesses should not be less than 0, if not
+   //      throws an IllegalArgumentException.
+   // post: reads in and records a dictionary of words, the length of the word 
+   //       chosen by the player, and the maximum guesses the player gets, 
+   //       initializing the state of the game;
+   //       creates a set of words with the dictionary given, which holds all the 
+   //       words from the dictionary and eliminating any duplicates.
    public HangmanManager(Collection<String> dictionary, int length, int max) {
       if (length < 1 || max < 0) {
          throw new IllegalArgumentException();
@@ -103,8 +118,8 @@ public class HangmanManager {
             if (word.charAt(i) == guess) {
                curPattern += guess+" ";
             }
-            else if (word.charAt(i) == pattern.charAt(i)){
-               curPattern += pattern.charAt(i)+" ";
+            else if (word.charAt(i) == pattern.charAt(2*i)){
+               curPattern += pattern.charAt(2*i)+" ";
             }
             else {
                curPattern += "- ";
@@ -127,11 +142,16 @@ public class HangmanManager {
             nextPattern = patterns;
          }
          else if (wordsPattern.get(patterns).size() == maxSize) {
-            for (String a: wordsPattern.keySet()) {
-               while (!a.equals(nextPattern)) {
+            boolean found = false;
+            while (!found){
+               for (String a: wordsPattern.keySet()) {
                   if (a.equals(patterns)) {
                      maxFam = wordsPattern.get(patterns);
                      nextPattern = patterns;
+                     found = true;
+                  }
+                  else if (a.equals(nextPattern)){
+                     found = true;
                   }
                }
             }
@@ -154,4 +174,3 @@ public class HangmanManager {
       
       return numOfOccurrences;
    }
-}
