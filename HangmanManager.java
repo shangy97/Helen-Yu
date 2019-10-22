@@ -48,9 +48,7 @@ public class HangmanManager {
          if (word.length() == length) {
             words.add(word);
          }
-      }
-      
-      
+      }  
    }
    
    // post: returns a set of words that is considered by the Hangman Manager.
@@ -83,43 +81,23 @@ public class HangmanManager {
       if (words.isEmpty()) {
          throw new IllegalStateException();
       }
-      
       return pattern;
    }
    
-   // pre: the number of guesses left should be greater than zero, if not
-   //      throws an IllegalStateException;
-   //      the set of words available for the Hangman Manager to consider 
-   //      should not be empty, if not throws an IllegalStateException;
-   //      if the previous two condiitons are met, the current guess made
-   //      should not have been guessed before, if not throw an 
-   //      IllegalArgumentException.
-   // post: records the current guess made by the player; with the current 
-   //       guess, decides which set of words to use to continue the game;
-   //       the method returns the number of occurrences of the guessed
-   //       letter in the new pattern and updates the number of guesses left.
-   public int record(char guess) {
-      if (guessesLeft < 1 || words.isEmpty()) {
-         throw new IllegalStateException();
-      }
-      
-      if (guesses.contains(guess)) {
-         throw new IllegalArgumentException();
-      }
-      
-      guesses.add(guess);
-      int numOfOccurrences = 0;
+   // post: takes in a set of words and a guessed letter to calculate the 
+   //       pattern for each word based on the letter; 
+   //       clears the old patterns and words stored and replaces them with
+   //       the new ones calculated.
+   private void getPattern(Set<String> w, char g) {
       wordsPattern.clear();
-      
-      for (String word: words) {
+      for (String word: w) {
          String curPattern = "";
-         
-         for (int i = 0; i<word.length(); i++){
-            if (word.charAt(i) == guess) {
-               curPattern += guess+" ";
+         for (int i = 0; i<wordLength; i++){
+            if (word.charAt(i) == g) {
+               curPattern += g + " ";
             }
             else if (word.charAt(i) == pattern.charAt(2*i)){
-               curPattern += pattern.charAt(2*i)+" ";
+               curPattern += pattern.charAt(2*i) + " ";
             }
             else {
                curPattern += "- ";
@@ -131,46 +109,65 @@ public class HangmanManager {
          }
          wordsPattern.get(curPattern).add(word);
       }
-      
+   }
+   
+   // post: chooses the pattern with most words that applied to it to continue
+   //       the game; if there is more than one pattern with the maximum number
+   //       of words, chooses the pattern that comes alphabetically first.
+   //       updates the words dictionary (the list of words for the computer to 
+   //       choose from; 
+   //       updates the pattern to the chosen one.
+   private void nextPattern() {
       int maxSize = 0;
-      Set<String> maxFam = new TreeSet<>();
-      String nextPattern = "";
-      for (String patterns: wordsPattern.keySet()){
-         if (wordsPattern.get(patterns).size() > maxSize) {
-            maxSize = wordsPattern.get(patterns).size();
-            maxFam = wordsPattern.get(patterns);
-            nextPattern = patterns;
-         }
-         else if (wordsPattern.get(patterns).size() == maxSize) {
-            boolean found = false;
-            while (!found){
-               for (String a: wordsPattern.keySet()) {
-                  if (a.equals(patterns)) {
-                     maxFam = wordsPattern.get(patterns);
-                     nextPattern = patterns;
-                     found = true;
-                  }
-                  else if (a.equals(nextPattern)){
-                     found = true;
-                  }
-               }
+         Set<String> maxFam = new TreeSet<>();
+         String nextPattern = "";
+         for (String patterns: wordsPattern.keySet()){
+            if (wordsPattern.get(patterns).size() > maxSize) {
+               maxSize = wordsPattern.get(patterns).size();
+               maxFam = wordsPattern.get(patterns);
+               nextPattern = patterns;
             }
-         }
-      } 
+         } 
+      words = maxFam;
+      pattern = nextPattern;
+   }
+
+   
+   // pre: the number of guesses left should be greater than zero, if not
+   //      throws an IllegalStateException;
+   //      the set of words available for the Hangman Manager to consider 
+   //      should not be empty, if not throws an IllegalStateException;
+   //      if the previous two condiitons are met, the current guess made
+   //      should not have been guessed before, if not throw an 
+   //      IllegalArgumentException.
+   // post: records the current guess made by the player; with the current 
+   //       guess, decides which set of words to use to continue the game;
+   //       returns the number of occurrences of the guessed letter in the
+   //       new pattern and updates the number of guesses left.
+   public int record(char guess) {
+      if (guessesLeft < 1 || words.isEmpty()) {
+         throw new IllegalStateException();
+      }
       
-      if (nextPattern.indexOf(guess)<0) {
+      if (guesses.contains(guess)) {
+         throw new IllegalArgumentException();
+      }
+      
+      guesses.add(guess);
+      getPattern(words, guess);
+      nextPattern();
+      
+      int numOfOccurrences = 0;      
+      if (pattern.indexOf(guess)<0) {
          guessesLeft--;
       }
       else {
-         for (int n = 0; n < nextPattern.length(); n++) {
-            if (nextPattern.charAt(n) == guess) {
+         for (int n = 0; n < pattern.length(); n++) {
+            if (pattern.charAt(n) == guess) {
                numOfOccurrences++;
             }
          }
       }
-
-      words = maxFam;
-      pattern = nextPattern;
-      
       return numOfOccurrences;
    }
+}
